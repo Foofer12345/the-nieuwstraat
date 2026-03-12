@@ -7,7 +7,7 @@
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a0f2e">
+    <meta name="theme-color" content="#f5f0e8">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Nieuwstraat">
@@ -562,21 +562,16 @@
             transition: all 0.3s ease;
             position: relative;
         }
-        .family-card:hover, .family-card.active {
+        .family-card:hover {
             border-color: var(--card-color);
             background: var(--bg-card-hover);
             transform: translateY(-2px);
         }
-        .family-card.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 20%;
-            width: 60%;
-            height: 3px;
-            background: var(--card-color);
-            border-radius: 2px;
-            box-shadow: 0 0 10px var(--card-color);
+        .family-card.active {
+            border-color: var(--card-color);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 0 12px var(--card-color), inset 0 0 12px rgba(255, 255, 255, 0.05);
         }
 
         .card-avatar {
@@ -1473,7 +1468,7 @@ const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png
 const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 
 function getTheme() {
-    return localStorage.getItem('nieuwstraat_theme') || 'dark';
+    return localStorage.getItem('nieuwstraat_theme') || 'light';
 }
 
 function applyTheme(theme) {
