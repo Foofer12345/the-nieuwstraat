@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nieuwstraat-v3';
+const CACHE_NAME = 'nieuwstraat-v4';
 const ASSETS = [
   '/the-nieuwstraat/',
   '/the-nieuwstraat/index.html',

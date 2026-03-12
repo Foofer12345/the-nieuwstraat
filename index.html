@@ -62,14 +62,14 @@
             --bg-popup: rgba(245, 240, 232, 0.97);
             --bg-toast: rgba(245, 240, 232, 0.97);
             --bg-instructions: rgba(245, 240, 232, 0.9);
-            --text-primary: #2a1b3d;
-            --text-secondary: rgba(42, 27, 61, 0.6);
-            --text-muted: rgba(42, 27, 61, 0.4);
-            --border-card: rgba(42, 27, 61, 0.15);
-            --border-btn: rgba(42, 27, 61, 0.2);
-            --disney-gold: #c9a020;
-            --disney-gold-light: #d4a828;
-            --sparkle: #f4c542;
+            --text-primary: #1a0f2e;
+            --text-secondary: rgba(26, 15, 46, 0.7);
+            --text-muted: rgba(26, 15, 46, 0.55);
+            --border-card: rgba(42, 27, 61, 0.2);
+            --border-btn: rgba(42, 27, 61, 0.25);
+            --disney-gold: #9a7a10;
+            --disney-gold-light: #a88515;
+            --sparkle: #c9a020;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -535,16 +535,18 @@
             height: 4px;
             background: rgba(255, 255, 255, 0.3);
             border-radius: 2px;
-            margin: 0 auto 12px;
+            margin: 0 auto 0;
         }
 
         .family-cards {
             display: flex;
             gap: 8px;
-            overflow-x: auto;
+            overflow: visible;
             padding-bottom: 8px;
+            padding-top: 4px;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
+            flex-wrap: nowrap;
         }
 
         .family-card {
@@ -570,8 +572,8 @@
         .family-card.active {
             border-color: var(--card-color);
             background: var(--bg-card-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 0 12px var(--card-color), inset 0 0 12px rgba(255, 255, 255, 0.05);
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 0 14px var(--card-color), 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 0 12px rgba(255, 255, 255, 0.05);
         }
 
         .card-avatar {
