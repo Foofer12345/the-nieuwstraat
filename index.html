@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE NIEUWSTRAAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --disney-purple: #2a1b3d;
+            --disney-deep: #1a0f2e;
+            --disney-gold: #f4c542;
+            --disney-gold-light: #ffe066;
+            --disney-pink: #ff6b9d;
+            --disney-blue: #4fc3f7;
+            --disney-teal: #26c6da;
+            --disney-navy: #1a237e;
+            --sparkle: #fff8e1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: var(--disney-deep);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ===== SPARKLE BACKGROUND ===== */
+        .stars {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: var(--disney-gold-light);
+            border-radius: 50%;
+            animation: twinkle var(--dur) ease-in-out infinite;
+            opacity: 0;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splash {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center bottom, #2a1b5e 0%, #0d0a1a 70%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        #splash.hidden {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .castle-silhouette {
+            width: 280px;
+            height: 200px;
+            margin-bottom: 20px;
+            position: relative;
+            filter: drop-shadow(0 0 30px rgba(244, 197, 66, 0.3));
+        }
+
+        .splash-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--disney-gold) 0%, #fff8e1 40%, var(--disney-gold) 60%, #ffe066 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            letter-spacing: 4px;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 10px rgba(244, 197, 66, 0.5));
+            margin-bottom: 8px;
+        }
+
+        .splash-subtitle {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.7rem, 2.5vw, 1rem);
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 50px;
+        }
+
+        .splash-prompt {
+            font-size: 0.9rem;
+            color: var(--disney-gold-light);
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .character-select {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 500px;
+            padding: 0 16px;
+        }
+
+        .char-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 12px;
+            border: 2px solid rgba(244, 197, 66, 0.3);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100px;
+            backdrop-filter: blur(10px);
+        }
+        .char-btn:hover {
+            border-color: var(--disney-gold);
+            background: rgba(244, 197, 66, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(244, 197, 66, 0.2);
+        }
+        .char-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .char-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .char-avatar.dagobert {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            border: 3px solid var(--disney-gold);
+            box-shadow: 0 0 15px rgba(244, 197, 66, 0.4);
+        }
+        .char-avatar.girlfriend {
+            background: linear-gradient(135deg, #c62828, #e53935);
+            border: 3px solid var(--disney-pink);
+            box-shadow: 0 0 15px rgba(255, 107, 157, 0.4);
+        }
+        .char-avatar.jort {
+            background: linear-gradient(135deg, #4a148c, #6a1b9a);
+            border: 3px solid var(--disney-blue);
+            box-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+        }
+        .char-avatar.olaf {
+            background: linear-gradient(135deg, #00695c, #00897b);
+            border: 3px solid var(--disney-teal);
+            box-shadow: 0 0 15px rgba(38, 198, 218, 0.4);
+        }
+
+        .char-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ===== FIREBASE SETUP SCREEN ===== */
+        #firebase-setup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center bottom, #2a1b5e 0%, #0d0a1a 70%);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        #firebase-setup.active { display: flex; }
+
+        .setup-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: 1.4rem;
+            color: var(--disney-gold);
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+        }
+        .setup-info {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-family: sans-serif;
+        }
+        .setup-info a {
+            color: var(--disney-gold);
+        }
+        .setup-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 2px solid rgba(244, 197, 66, 0.3);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-family: monospace;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .setup-input:focus {
+            border-color: var(--disney-gold);
+        }
+        .setup-input::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        .setup-btn {
+            padding: 12px 32px;
+            border: 2px solid var(--disney-gold);
+            border-radius: 10px;
+            background: rgba(244, 197, 66, 0.1);
+            color: var(--disney-gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 12px;
+            letter-spacing: 2px;
+        }
+        .setup-btn:hover {
+            background: var(--disney-gold);
+            color: var(--disney-deep);
+        }
+        .setup-skip {
+            margin-top: 16px;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            font-family: sans-serif;
+            text-decoration: underline;
+        }
+        .setup-skip:hover { color: rgba(255,255,255,0.7); }
+        .setup-error {
+            color: #ef5350;
+            font-size: 0.7rem;
+            margin-top: 8px;
+            font-family: sans-serif;
+        }
+        .setup-success {
+            color: #69f0ae;
+            font-size: 0.7rem;
+            margin-top: 8px;
+            font-family: sans-serif;
+        }
+
+        /* ===== MAIN APP ===== */
+        #app {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        #app.active { display: block; }
+
+        /* ===== HEADER ===== */
+        #header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            z-index: 800;
+            background: linear-gradient(180deg, rgba(26, 15, 46, 0.95) 0%, rgba(26, 15, 46, 0.7) 70%, transparent 100%);
+            padding: 12px 16px 24px;
+            text-align: center;
+        }
+
+        .header-castle {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            height: 60px;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .header-title {
+            font-family: 'Cinzel Decorative', cursive;
+            font-size: clamp(1rem, 4vw, 1.6rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--disney-gold) 0%, #fff8e1 50%, var(--disney-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            filter: drop-shadow(0 1px 6px rgba(244, 197, 66, 0.4));
+        }
+
+        .header-user {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        .sync-indicator {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .sync-indicator.online { background: #69f0ae; box-shadow: 0 0 6px #69f0ae; }
+        .sync-indicator.offline { background: #ef5350; box-shadow: 0 0 6px #ef5350; }
+
+        /* ===== MAP ===== */
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Custom map markers */
+        .disney-marker {
+            position: relative;
+            width: 52px;
+            height: 66px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .marker-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+            z-index: 2;
+            animation: marker-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .marker-avatar.dagobert {
+            background: linear-gradient(135deg, #1a237e, #283593);
+            border: 3px solid var(--disney-gold);
+            box-shadow: 0 0 20px rgba(244, 197, 66, 0.5), 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .marker-avatar.girlfriend {
+            background: linear-gradient(135deg, #c62828, #e53935);
+            border: 3px solid var(--disney-pink);
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.5), 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .marker-avatar.jort {
+            background: linear-gradient(135deg, #4a148c, #6a1b9a);
+            border: 3px solid var(--disney-blue);
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.5), 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .marker-avatar.olaf {
+            background: linear-gradient(135deg, #00695c, #00897b);
+            border: 3px solid var(--disney-teal);
+            box-shadow: 0 0 20px rgba(38, 198, 218, 0.5), 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        .marker-pointer {
+            width: 12px;
+            height: 12px;
+            background: inherit;
+            transform: rotate(45deg);
+            margin-top: -7px;
+            z-index: 1;
+            border-radius: 0 0 3px 0;
+        }
+        .marker-pointer.dagobert { background: var(--disney-gold); }
+        .marker-pointer.girlfriend { background: var(--disney-pink); }
+        .marker-pointer.jort { background: var(--disney-blue); }
+        .marker-pointer.olaf { background: var(--disney-teal); }
+
+        .marker-label {
+            position: absolute;
+            bottom: -18px;
+            white-space: nowrap;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 0 6px rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.6);
+            z-index: 3;
+        }
+
+        @keyframes marker-bounce {
+            0% { transform: scale(0) translateY(-20px); opacity: 0; }
+            60% { transform: scale(1.2) translateY(0); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* Sparkle burst on marker placement */
+        .sparkle-burst {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 80px; height: 80px;
+            margin: -40px 0 0 -40px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .sparkle-particle {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: var(--disney-gold-light);
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            animation: sparkle-fly 0.8s ease-out forwards;
+        }
+        @keyframes sparkle-fly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* ===== FAMILY PANEL ===== */
+        #family-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            z-index: 800;
+            background: linear-gradient(0deg, rgba(26, 15, 46, 0.97) 0%, rgba(26, 15, 46, 0.9) 80%, transparent 100%);
+            padding: 20px 12px 16px;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .panel-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin: 0 auto 12px;
+        }
+
+        .family-cards {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .family-card {
+            flex-shrink: 0;
+            scroll-snap-align: start;
+            width: calc(25% - 6px);
+            min-width: 80px;
+            padding: 10px 6px;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .family-card:hover, .family-card.active {
+            border-color: var(--card-color);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .family-card.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 20%;
+            width: 60%;
+            height: 3px;
+            background: var(--card-color);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--card-color);
+        }
+
+        .card-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .card-name {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.55rem, 2vw, 0.7rem);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .card-status {
+            font-size: 0.5rem;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.5px;
+            font-family: sans-serif;
+        }
+        .card-status.online {
+            color: #69f0ae;
+        }
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-buttons {
+            position: absolute;
+            right: 12px;
+            bottom: 160px;
+            z-index: 800;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--disney-gold);
+            background: rgba(26, 15, 46, 0.9);
+            color: var(--disney-gold);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .action-btn:hover {
+            background: var(--disney-gold);
+            color: var(--disney-deep);
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(244, 197, 66, 0.4);
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+        .action-btn.locating {
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(244, 197, 66, 0.6); }
+            100% { box-shadow: 0 0 0 15px rgba(244, 197, 66, 0); }
+        }
+
+        /* ===== TOOLTIP / POPUP ===== */
+        .leaflet-popup-content-wrapper {
+            background: rgba(26, 15, 46, 0.95) !important;
+            color: #fff !important;
+            border: 2px solid var(--disney-gold) !important;
+            border-radius: 12px !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+        }
+        .leaflet-popup-tip {
+            background: rgba(26, 15, 46, 0.95) !important;
+            border: 1px solid var(--disney-gold) !important;
+        }
+        .leaflet-popup-content {
+            font-family: 'Cinzel', serif !important;
+            text-align: center;
+            margin: 10px 14px !important;
+        }
+        .popup-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--disney-gold);
+            letter-spacing: 1px;
+        }
+        .popup-character {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+        }
+        .popup-time {
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 6px;
+            font-family: sans-serif;
+        }
+
+        /* ===== NOTIFICATION TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(26, 15, 46, 0.95);
+            border: 2px solid var(--disney-gold);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: var(--disney-gold-light);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(244, 197, 66, 0.2);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== INSTRUCTIONS OVERLAY ===== */
+        .instructions {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 799;
+            background: rgba(26, 15, 46, 0.85);
+            border: 1px solid rgba(244, 197, 66, 0.3);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            font-family: sans-serif;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* ===== LEAFLET OVERRIDES ===== */
+        .leaflet-control-zoom {
+            border: 2px solid rgba(42, 27, 61, 0.5) !important;
+            border-radius: 10px !important;
+            overflow: hidden;
+        }
+        .leaflet-control-zoom a {
+            background: rgba(26, 15, 46, 0.85) !important;
+            color: var(--disney-gold) !important;
+            border-color: rgba(42, 27, 61, 0.3) !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background: rgba(244, 197, 66, 0.2) !important;
+        }
+        .leaflet-control-attribution {
+            background: rgba(255, 255, 255, 0.7) !important;
+            color: rgba(0,0,0,0.4) !important;
+            font-size: 9px !important;
+        }
+        .leaflet-control-attribution a {
+            color: rgba(42, 27, 61, 0.6) !important;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .family-card {
+                min-width: 72px;
+                padding: 8px 4px;
+            }
+            .card-avatar {
+                width: 34px;
+                height: 34px;
+                font-size: 17px;
+            }
+            .action-buttons {
+                bottom: 150px;
+                right: 8px;
+            }
+            .action-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Background Stars -->
+<div class="stars" id="stars"></div>
+
+<!-- ===== SPLASH SCREEN ===== -->
+<div id="splash">
+    <!-- Castle SVG -->
+    <svg class="castle-silhouette" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="80" width="16" height="120" fill="rgba(244,197,66,0.25)"/>
+        <rect x="244" y="80" width="16" height="120" fill="rgba(244,197,66,0.25)"/>
+        <rect x="16" y="60" width="24" height="24" rx="2" fill="rgba(244,197,66,0.3)"/>
+        <rect x="240" y="60" width="24" height="24" rx="2" fill="rgba(244,197,66,0.3)"/>
+        <polygon points="28,60 16,40 40,40" fill="rgba(244,197,66,0.35)"/>
+        <polygon points="252,60 240,40 264,40" fill="rgba(244,197,66,0.35)"/>
+        <line x1="28" y1="40" x2="28" y2="25" stroke="rgba(244,197,66,0.4)" stroke-width="2"/>
+        <polygon points="28,25 40,30 28,35" fill="rgba(244,197,66,0.4)"/>
+        <line x1="252" y1="40" x2="252" y2="25" stroke="rgba(244,197,66,0.4)" stroke-width="2"/>
+        <polygon points="252,25 264,30 252,35" fill="rgba(244,197,66,0.4)"/>
+        <rect x="36" y="120" width="208" height="80" fill="rgba(244,197,66,0.2)"/>
+        <rect x="115" y="50" width="50" height="150" fill="rgba(244,197,66,0.25)"/>
+        <rect x="108" y="30" width="64" height="24" rx="2" fill="rgba(244,197,66,0.3)"/>
+        <polygon points="140,30 108,10 172,10" fill="rgba(244,197,66,0.35)"/>
+        <line x1="140" y1="10" x2="140" y2="-5" stroke="rgba(244,197,66,0.4)" stroke-width="2"/>
+        <circle cx="140" cy="-8" r="4" fill="rgba(244,197,66,0.5)"/>
+        <rect x="60" y="100" width="20" height="100" fill="rgba(244,197,66,0.22)"/>
+        <rect x="200" y="100" width="20" height="100" fill="rgba(244,197,66,0.22)"/>
+        <polygon points="70,100 56,80 84,80" fill="rgba(244,197,66,0.3)"/>
+        <polygon points="210,100 196,80 224,80" fill="rgba(244,197,66,0.3)"/>
+        <ellipse cx="140" cy="200" rx="22" ry="30" fill="rgba(26,15,46,0.8)"/>
+        <ellipse cx="140" cy="90" rx="8" ry="12" fill="rgba(244,197,66,0.15)"/>
+        <ellipse cx="140" cy="130" rx="6" ry="9" fill="rgba(244,197,66,0.15)"/>
+        <circle cx="70" cy="125" r="5" fill="rgba(244,197,66,0.15)"/>
+        <circle cx="210" cy="125" r="5" fill="rgba(244,197,66,0.15)"/>
+        <rect x="36" y="112" width="12" height="10" fill="rgba(244,197,66,0.25)"/>
+        <rect x="56" y="112" width="12" height="10" fill="rgba(244,197,66,0.25)"/>
+        <rect x="212" y="112" width="12" height="10" fill="rgba(244,197,66,0.25)"/>
+        <rect x="232" y="112" width="12" height="10" fill="rgba(244,197,66,0.25)"/>
+    </svg>
+
+    <h1 class="splash-title">THE NIEUWSTRAAT</h1>
+    <p class="splash-subtitle">Family Magic Map</p>
+
+    <p class="splash-prompt">Who are you?</p>
+
+    <div class="character-select">
+        <button class="char-btn" onclick="selectCharacter('dagobert')">
+            <div class="char-avatar dagobert">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                    <circle cx="20" cy="16" r="10" fill="#fdd835"/>
+                    <rect x="10" y="10" width="20" height="6" rx="3" fill="#1a237e"/>
+                    <circle cx="15" cy="14" r="2" fill="#fff"/>
+                    <circle cx="25" cy="14" r="2" fill="#fff"/>
+                    <circle cx="15" cy="14" r="1" fill="#333"/>
+                    <circle cx="25" cy="14" r="1" fill="#333"/>
+                    <ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/>
+                    <rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/>
+                    <circle cx="20" cy="4" r="4" fill="#f44336"/>
+                    <circle cx="14" cy="18" r="2.5" fill="#fff" opacity="0.3"/>
+                    <circle cx="20" cy="32" rx="4" fill="#1a237e"/>
+                    <rect x="8" y="26" width="24" height="12" rx="3" fill="#1a237e"/>
+                    <rect x="16" y="28" width="8" height="4" rx="1" fill="#f4c542"/>
+                </svg>
+            </div>
+            <span class="char-name">Dagobert</span>
+        </button>
+        <button class="char-btn" onclick="selectCharacter('girlfriend')">
+            <div class="char-avatar girlfriend">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                    <circle cx="20" cy="18" r="10" fill="#333"/>
+                    <circle cx="13" cy="10" r="7" fill="#333"/>
+                    <circle cx="27" cy="10" r="7" fill="#333"/>
+                    <circle cx="20" cy="18" r="8" fill="#ffe0b2"/>
+                    <circle cx="16" cy="16" r="1.5" fill="#333"/>
+                    <circle cx="24" cy="16" r="1.5" fill="#333"/>
+                    <ellipse cx="20" cy="20" rx="2" ry="1" fill="#e91e63"/>
+                    <circle cx="13" cy="10" r="4" fill="#333"/>
+                    <circle cx="27" cy="10" r="4" fill="#333"/>
+                    <circle cx="13" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
+                    <circle cx="27" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
+                    <ellipse cx="20" cy="6" rx="12" ry="3" fill="none" stroke="#e91e63" stroke-width="2"/>
+                    <rect x="8" y="28" width="24" height="10" rx="3" fill="#e91e63"/>
+                    <circle cx="20" cy="29" r="2" fill="#fff" opacity="0.3"/>
+                </svg>
+            </div>
+            <span class="char-name">Vriendin</span>
+        </button>
+        <button class="char-btn" onclick="selectCharacter('jort')">
+            <div class="char-avatar jort">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                    <circle cx="20" cy="20" r="12" fill="#4fc3f7"/>
+                    <ellipse cx="12" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/>
+                    <ellipse cx="28" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(20, 28, 8)"/>
+                    <circle cx="14" cy="18" r="4" fill="#1a237e"/>
+                    <circle cx="26" cy="18" r="4" fill="#1a237e"/>
+                    <circle cx="15" cy="17" r="2" fill="#fff"/>
+                    <circle cx="27" cy="17" r="2" fill="#fff"/>
+                    <ellipse cx="20" cy="26" rx="5" ry="3" fill="#1a237e"/>
+                    <ellipse cx="20" cy="25" rx="3" ry="1.5" fill="#e91e63"/>
+                    <circle cx="20" cy="22" r="3" fill="#29b6f6"/>
+                    <line x1="12" y1="10" x2="8" y2="3" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="28" y1="10" x2="32" y2="3" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"/>
+                    <rect x="10" y="32" width="20" height="6" rx="3" fill="#e91e63"/>
+                </svg>
+            </div>
+            <span class="char-name">Jort</span>
+        </button>
+        <button class="char-btn" onclick="selectCharacter('olaf')">
+            <div class="char-avatar olaf">
+                <svg viewBox="0 0 40 40" width="40" height="40">
+                    <circle cx="20" cy="16" r="10" fill="#8d6e63"/>
+                    <rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/>
+                    <polygon points="20,0 14,6 26,6" fill="#fff"/>
+                    <rect x="12" y="8" width="16" height="6" fill="#f4c542"/>
+                    <circle cx="20" cy="10" r="2" fill="#e91e63"/>
+                    <circle cx="16" cy="16" r="2" fill="#fff"/>
+                    <circle cx="24" cy="16" r="2" fill="#fff"/>
+                    <circle cx="16" cy="16" r="1" fill="#333"/>
+                    <circle cx="24" cy="16" r="1" fill="#333"/>
+                    <path d="M17 21 Q20 24 23 21" stroke="#333" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+                    <rect x="8" y="26" width="24" height="12" rx="3" fill="#fff"/>
+                    <rect x="14" y="26" width="12" height="12" rx="2" fill="#26c6da"/>
+                    <rect x="16" y="30" width="8" height="4" rx="1" fill="#f4c542"/>
+                </svg>
+            </div>
+            <span class="char-name">Olaf</span>
+        </button>
+    </div>
+</div>
+
+<!-- ===== FIREBASE SETUP SCREEN ===== -->
+<div id="firebase-setup">
+    <h2 class="setup-title">Firebase Setup</h2>
+    <p class="setup-info">
+        To enable real-time location sharing, connect a Firebase project.<br><br>
+        1. Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a><br>
+        2. Create a new project<br>
+        3. Go to Realtime Database &rarr; Create Database (test mode)<br>
+        4. Go to Project Settings &rarr; General &rarr; Your apps &rarr; Web app<br>
+        5. Copy your config values below:
+    </p>
+    <input class="setup-input" id="cfgApiKey" placeholder="apiKey" />
+    <input class="setup-input" id="cfgDomain" placeholder="authDomain (e.g. myapp.firebaseapp.com)" />
+    <input class="setup-input" id="cfgDbUrl" placeholder="databaseURL (e.g. https://myapp-default-rtdb.firebaseio.com)" />
+    <input class="setup-input" id="cfgProjectId" placeholder="projectId" />
+    <input class="setup-input" id="cfgBucket" placeholder="storageBucket" />
+    <input class="setup-input" id="cfgSenderId" placeholder="messagingSenderId" />
+    <input class="setup-input" id="cfgAppId" placeholder="appId" />
+    <button class="setup-btn" onclick="saveFirebaseConfig()">Connect</button>
+    <div id="setupMsg"></div>
+    <div class="setup-skip" onclick="skipFirebase()">Skip — use offline mode</div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+    <!-- Header -->
+    <div id="header">
+        <svg class="header-castle" viewBox="0 0 600 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="30" width="600" height="30" fill="rgba(244,197,66,0.3)"/>
+            <rect x="0" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <rect x="30" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <rect x="60" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <rect x="500" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <rect x="530" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <rect x="560" y="20" width="20" height="14" fill="rgba(244,197,66,0.3)"/>
+            <polygon points="300,0 270,30 330,30" fill="rgba(244,197,66,0.2)"/>
+        </svg>
+        <h1 class="header-title">THE NIEUWSTRAAT</h1>
+        <div class="header-user" id="headerUser"></div>
+    </div>
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Instructions -->
+    <div class="instructions" id="instructions">
+        Tap on the map to set your location, or use the GPS button
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="action-btn" id="gpsBtn" onclick="useGPS()" title="Use GPS">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+                <circle cx="12" cy="12" r="8" stroke-dasharray="4 4"/>
+            </svg>
+        </button>
+        <button class="action-btn" id="familyToggle" onclick="togglePanel()" title="Family">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="9" cy="7" r="3"/>
+                <circle cx="17" cy="7" r="3"/>
+                <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+                <path d="M17 14a4 4 0 014 4v3"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Family Panel -->
+    <div id="family-panel">
+        <div class="panel-handle"></div>
+        <div class="family-cards" id="familyCards"></div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== FAMILY CONFIG =====
+const FAMILY = {
+    dagobert: {
+        name: 'Dagobert',
+        character: 'Scrooge McDuck',
+        color: '#f4c542',
+        colorAlt: '#1a237e',
+    },
+    girlfriend: {
+        name: 'Vriendin',
+        character: 'Minnie Mouse',
+        color: '#ff6b9d',
+        colorAlt: '#c62828',
+    },
+    jort: {
+        name: 'Jort',
+        character: 'Stitch',
+        color: '#4fc3f7',
+        colorAlt: '#4a148c',
+    },
+    olaf: {
+        name: 'Olaf',
+        character: 'Prins Ali',
+        color: '#26c6da',
+        colorAlt: '#00695c',
+    }
+};
+
+// ===== STATE =====
+let currentUser = null;
+let map = null;
+let markers = {};
+let locations = {};
+let firebaseReady = false;
+let db = null;
+
+// ===== FIREBASE =====
+function getFirebaseConfig() {
+    try {
+        const stored = localStorage.getItem('nieuwstraat_firebase_config');
+        return stored ? JSON.parse(stored) : null;
+    } catch (e) { return null; }
+}
+
+function initFirebase(config) {
+    try {
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(config);
+        }
+        db = firebase.database();
+        firebaseReady = true;
+        console.log('Firebase connected!');
+        return true;
+    } catch (e) {
+        console.error('Firebase init error:', e);
+        firebaseReady = false;
+        return false;
+    }
+}
+
+function saveFirebaseConfig() {
+    const config = {
+        apiKey: document.getElementById('cfgApiKey').value.trim(),
+        authDomain: document.getElementById('cfgDomain').value.trim(),
+        databaseURL: document.getElementById('cfgDbUrl').value.trim(),
+        projectId: document.getElementById('cfgProjectId').value.trim(),
+        storageBucket: document.getElementById('cfgBucket').value.trim(),
+        messagingSenderId: document.getElementById('cfgSenderId').value.trim(),
+        appId: document.getElementById('cfgAppId').value.trim(),
+    };
+
+    const msg = document.getElementById('setupMsg');
+
+    if (!config.apiKey || !config.databaseURL || !config.projectId) {
+        msg.className = 'setup-error';
+        msg.textContent = 'apiKey, databaseURL, and projectId are required.';
+        return;
+    }
+
+    if (initFirebase(config)) {
+        localStorage.setItem('nieuwstraat_firebase_config', JSON.stringify(config));
+        msg.className = 'setup-success';
+        msg.textContent = 'Connected! Loading app...';
+        setTimeout(() => {
+            document.getElementById('firebase-setup').classList.remove('active');
+            document.getElementById('splash').style.display = '';
+        }, 800);
+    } else {
+        msg.className = 'setup-error';
+        msg.textContent = 'Connection failed. Check your config values.';
+    }
+}
+
+function skipFirebase() {
+    document.getElementById('firebase-setup').classList.remove('active');
+    document.getElementById('splash').style.display = '';
+    showToast('Offline mode — locations only saved locally');
+}
+
+// ===== FIREBASE REALTIME SYNC =====
+function firebaseSaveLocation(id, lat, lng) {
+    if (!firebaseReady || !db) return;
+    db.ref('locations/' + id).set({
+        lat: lat,
+        lng: lng,
+        time: Date.now()
+    }).catch(err => console.error('Firebase write error:', err));
+}
+
+function firebaseListenLocations() {
+    if (!firebaseReady || !db) return;
+    db.ref('locations').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        Object.keys(data).forEach(id => {
+            if (!FAMILY[id]) return;
+            const loc = data[id];
+            const oldLoc = locations[id];
+            const isNew = !oldLoc || oldLoc.lat !== loc.lat || oldLoc.lng !== loc.lng;
+            locations[id] = loc;
+            if (map && isNew) {
+                placeMarker(id, loc.lat, loc.lng, id !== currentUser);
+            }
+        });
+        // Also save to localStorage as cache
+        localStorage.setItem('nieuwstraat_locations', JSON.stringify(locations));
+        if (map) updateFamilyCards();
+    });
+}
+
+// ===== INIT STARS =====
+function createStars() {
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 60; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+        star.style.animationDelay = Math.random() * 4 + 's';
+        star.style.width = (2 + Math.random() * 3) + 'px';
+        star.style.height = star.style.width;
+        container.appendChild(star);
+    }
+}
+createStars();
+
+// ===== STARTUP LOGIC =====
+(function startup() {
+    const config = getFirebaseConfig();
+    if (config) {
+        // Config exists — try to connect silently
+        if (initFirebase(config)) {
+            firebaseListenLocations();
+        }
+        // Show splash either way
+        document.getElementById('splash').style.display = '';
+    } else {
+        // No config — show setup screen first
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('firebase-setup').classList.add('active');
+    }
+})();
+
+// ===== CHARACTER SELECT =====
+function selectCharacter(id) {
+    currentUser = id;
+    localStorage.setItem('nieuwstraat_user', id);
+    locations = loadLocations();
+
+    // Hide splash
+    document.getElementById('splash').classList.add('hidden');
+    setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('app').classList.add('active');
+        initMap();
+        buildFamilyCards();
+
+        const syncDot = firebaseReady
+            ? '<span class="sync-indicator online"></span>'
+            : '<span class="sync-indicator offline"></span>';
+        document.getElementById('headerUser').innerHTML =
+            syncDot + FAMILY[id].character + ' mode';
+
+        // Fade out instructions
+        setTimeout(() => {
+            const instr = document.getElementById('instructions');
+            if (instr) instr.style.opacity = '0';
+        }, 5000);
+    }, 800);
+}
+
+// ===== MAP =====
+function initMap() {
+    map = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+    }).setView([52.09, 5.12], 8);
+
+    // Light map tiles (CartoDB Positron)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | THE NIEUWSTRAAT',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Click to place
+    map.on('click', function(e) {
+        if (!currentUser) return;
+        setLocation(currentUser, e.latlng.lat, e.latlng.lng);
+    });
+
+    // Load existing markers
+    Object.keys(locations).forEach(id => {
+        const loc = locations[id];
+        if (loc && loc.lat && loc.lng) {
+            placeMarker(id, loc.lat, loc.lng, false);
+        }
+    });
+
+    map.zoomControl.setPosition('topleft');
+
+    // Fly to user if they have a location
+    if (locations[currentUser]) {
+        const loc = locations[currentUser];
+        map.flyTo([loc.lat, loc.lng], 14, { duration: 1.5 });
+    }
+}
+
+// ===== MARKERS =====
+function createMarkerHTML(id) {
+    const member = FAMILY[id];
+    const svgMap = {
+        dagobert: `<svg viewBox="0 0 40 40" width="32" height="32">
+            <circle cx="20" cy="16" r="10" fill="#fdd835"/>
+            <rect x="10" y="10" width="20" height="6" rx="3" fill="#1a237e"/>
+            <circle cx="15" cy="14" r="2" fill="#fff"/><circle cx="25" cy="14" r="2" fill="#fff"/>
+            <circle cx="15" cy="14" r="1" fill="#333"/><circle cx="25" cy="14" r="1" fill="#333"/>
+            <ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/>
+            <rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/>
+            <circle cx="20" cy="4" r="4" fill="#f44336"/>
+            <rect x="8" y="26" width="24" height="12" rx="3" fill="#1a237e"/>
+            <rect x="16" y="28" width="8" height="4" rx="1" fill="#f4c542"/>
+        </svg>`,
+        girlfriend: `<svg viewBox="0 0 40 40" width="32" height="32">
+            <circle cx="20" cy="18" r="10" fill="#333"/>
+            <circle cx="13" cy="10" r="7" fill="#333"/><circle cx="27" cy="10" r="7" fill="#333"/>
+            <circle cx="20" cy="18" r="8" fill="#ffe0b2"/>
+            <circle cx="16" cy="16" r="1.5" fill="#333"/><circle cx="24" cy="16" r="1.5" fill="#333"/>
+            <ellipse cx="20" cy="20" rx="2" ry="1" fill="#e91e63"/>
+            <circle cx="13" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
+            <circle cx="27" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
+            <rect x="8" y="28" width="24" height="10" rx="3" fill="#e91e63"/>
+        </svg>`,
+        jort: `<svg viewBox="0 0 40 40" width="32" height="32">
+            <circle cx="20" cy="20" r="12" fill="#4fc3f7"/>
+            <ellipse cx="12" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/>
+            <ellipse cx="28" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(20, 28, 8)"/>
+            <circle cx="14" cy="18" r="4" fill="#1a237e"/><circle cx="26" cy="18" r="4" fill="#1a237e"/>
+            <circle cx="15" cy="17" r="2" fill="#fff"/><circle cx="27" cy="17" r="2" fill="#fff"/>
+            <ellipse cx="20" cy="26" rx="5" ry="3" fill="#1a237e"/>
+            <circle cx="20" cy="22" r="3" fill="#29b6f6"/>
+            <rect x="10" y="32" width="20" height="6" rx="3" fill="#e91e63"/>
+        </svg>`,
+        olaf: `<svg viewBox="0 0 40 40" width="32" height="32">
+            <circle cx="20" cy="16" r="10" fill="#8d6e63"/>
+            <rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/>
+            <rect x="12" y="8" width="16" height="6" fill="#f4c542"/>
+            <circle cx="20" cy="10" r="2" fill="#e91e63"/>
+            <circle cx="16" cy="16" r="2" fill="#fff"/><circle cx="24" cy="16" r="2" fill="#fff"/>
+            <circle cx="16" cy="16" r="1" fill="#333"/><circle cx="24" cy="16" r="1" fill="#333"/>
+            <path d="M17 21 Q20 24 23 21" stroke="#333" fill="none" stroke-width="1.5"/>
+            <rect x="8" y="26" width="24" height="12" rx="3" fill="#fff"/>
+            <rect x="14" y="26" width="12" height="12" rx="2" fill="#26c6da"/>
+            <rect x="16" y="30" width="8" height="4" rx="1" fill="#f4c542"/>
+        </svg>`
+    };
+
+    return `
+        <div class="disney-marker">
+            <div class="marker-avatar ${id}">${svgMap[id]}</div>
+            <div class="marker-pointer ${id}"></div>
+            <div class="marker-label" style="color: ${member.colorAlt}">${member.name}</div>
+        </div>
+    `;
+}
+
+function placeMarker(id, lat, lng, animate = true) {
+    const member = FAMILY[id];
+
+    if (markers[id]) {
+        map.removeLayer(markers[id]);
+    }
+
+    const icon = L.divIcon({
+        html: createMarkerHTML(id),
+        className: '',
+        iconSize: [52, 80],
+        iconAnchor: [26, 66],
+        popupAnchor: [0, -60]
+    });
+
+    markers[id] = L.marker([lat, lng], { icon })
+        .addTo(map)
+        .bindPopup(`
+            <div class="popup-name" style="color: ${member.color}">${member.name}</div>
+            <div class="popup-character">${member.character}</div>
+            <div class="popup-time">${formatTime(locations[id]?.time)}</div>
+        `);
+
+    if (animate) {
+        createSparkles(lat, lng, member.color);
+    }
+}
+
+function createSparkles(lat, lng, color) {
+    const point = map.latLngToContainerPoint([lat, lng]);
+    const burst = document.createElement('div');
+    burst.className = 'sparkle-burst';
+    burst.style.left = point.x + 'px';
+    burst.style.top = point.y + 'px';
+    burst.style.position = 'absolute';
+    burst.style.zIndex = '1000';
+
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'sparkle-particle';
+        const angle = (i / 12) * Math.PI * 2;
+        const dist = 30 + Math.random() * 30;
+        p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+        p.style.background = i % 2 === 0 ? color : '#fff8e1';
+        p.style.animationDelay = (Math.random() * 0.2) + 's';
+        burst.appendChild(p);
+    }
+
+    document.getElementById('map').appendChild(burst);
+    setTimeout(() => burst.remove(), 1000);
+}
+
+// ===== LOCATION LOGIC =====
+function setLocation(id, lat, lng) {
+    locations[id] = { lat, lng, time: Date.now() };
+
+    // Save to Firebase (real-time for everyone)
+    firebaseSaveLocation(id, lat, lng);
+
+    // Also save locally as fallback
+    localStorage.setItem('nieuwstraat_locations', JSON.stringify(locations));
+
+    placeMarker(id, lat, lng, true);
+    updateFamilyCards();
+    showToast(`${FAMILY[id].name} is here!`);
+}
+
+function useGPS() {
+    if (!navigator.geolocation) {
+        showToast('GPS not available');
+        return;
+    }
+
+    const btn = document.getElementById('gpsBtn');
+    btn.classList.add('locating');
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            btn.classList.remove('locating');
+            const { latitude, longitude } = pos.coords;
+            setLocation(currentUser, latitude, longitude);
+            map.flyTo([latitude, longitude], 15, { duration: 1.2 });
+        },
+        (err) => {
+            btn.classList.remove('locating');
+            showToast('Could not get GPS location');
+            console.error('GPS error:', err);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+// ===== FAMILY PANEL =====
+function buildFamilyCards() {
+    const container = document.getElementById('familyCards');
+    container.innerHTML = '';
+
+    Object.keys(FAMILY).forEach(id => {
+        const member = FAMILY[id];
+        const loc = locations[id];
+        const isActive = id === currentUser;
+
+        const card = document.createElement('div');
+        card.className = `family-card${isActive ? ' active' : ''}`;
+        card.style.setProperty('--card-color', member.color);
+
+        const svgAvatars = {
+            dagobert: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="16" r="10" fill="#fdd835"/><rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/><circle cx="20" cy="4" r="4" fill="#f44336"/><circle cx="15" cy="14" r="1" fill="#333"/><circle cx="25" cy="14" r="1" fill="#333"/><ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/></svg>`,
+            girlfriend: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="18" r="8" fill="#ffe0b2"/><circle cx="13" cy="10" r="5" fill="#333"/><circle cx="27" cy="10" r="5" fill="#333"/><circle cx="13" cy="10" r="2" fill="#e91e63" opacity="0.8"/><circle cx="27" cy="10" r="2" fill="#e91e63" opacity="0.8"/><circle cx="16" cy="16" r="1.5" fill="#333"/><circle cx="24" cy="16" r="1.5" fill="#333"/></svg>`,
+            jort: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="20" r="12" fill="#4fc3f7"/><ellipse cx="12" cy="8" rx="4" ry="6" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/><ellipse cx="28" cy="8" rx="4" ry="6" fill="#4fc3f7" transform="rotate(20, 28, 8)"/><circle cx="14" cy="18" r="3" fill="#1a237e"/><circle cx="26" cy="18" r="3" fill="#1a237e"/><circle cx="15" cy="17" r="1.5" fill="#fff"/><circle cx="27" cy="17" r="1.5" fill="#fff"/></svg>`,
+            olaf: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="16" r="10" fill="#8d6e63"/><rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/><rect x="12" y="8" width="16" height="6" fill="#f4c542"/><circle cx="20" cy="10" r="2" fill="#e91e63"/><circle cx="16" cy="16" r="1" fill="#333"/><circle cx="24" cy="16" r="1" fill="#333"/></svg>`
+        };
+
+        card.innerHTML = `
+            <div class="card-avatar" style="background: linear-gradient(135deg, ${member.colorAlt}, ${member.color}22); border: 2px solid ${member.color}; border-radius: 50%;">
+                ${svgAvatars[id]}
+            </div>
+            <div class="card-name" style="color: ${member.color}">${member.name}</div>
+            <div class="card-status ${loc ? 'online' : ''}">${loc ? formatTime(loc.time) : 'No location'}</div>
+        `;
+
+        card.addEventListener('click', () => {
+            if (loc) {
+                map.flyTo([loc.lat, loc.lng], 15, { duration: 1 });
+                markers[id]?.openPopup();
+            } else if (id === currentUser) {
+                useGPS();
+            } else {
+                showToast(`${member.name} hasn't shared location yet`);
+            }
+        });
+
+        container.appendChild(card);
+    });
+}
+
+function updateFamilyCards() {
+    buildFamilyCards();
+}
+
+// ===== PANEL TOGGLE =====
+let panelVisible = true;
+function togglePanel() {
+    const panel = document.getElementById('family-panel');
+    panelVisible = !panelVisible;
+    panel.style.transform = panelVisible ? 'translateY(0)' : 'translateY(calc(100% - 20px))';
+}
+
+// ===== PERSISTENCE =====
+function loadLocations() {
+    try {
+        const data = localStorage.getItem('nieuwstraat_locations');
+        return data ? JSON.parse(data) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+// ===== UTILITIES =====
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' min ago';
+    if (diff < 86400000) {
+        return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
