@@ -166,12 +166,12 @@
             overflow: hidden;
         }
 
-        .char-avatar.dagobert {
+        .char-avatar.michiel {
             background: linear-gradient(135deg, #1a237e, #283593);
             border: 3px solid var(--disney-gold);
             box-shadow: 0 0 15px rgba(244, 197, 66, 0.4);
         }
-        .char-avatar.girlfriend {
+        .char-avatar.claire {
             background: linear-gradient(135deg, #c62828, #e53935);
             border: 3px solid var(--disney-pink);
             box-shadow: 0 0 15px rgba(255, 107, 157, 0.4);
@@ -185,6 +185,25 @@
             background: linear-gradient(135deg, #00695c, #00897b);
             border: 3px solid var(--disney-teal);
             box-shadow: 0 0 15px rgba(38, 198, 218, 0.4);
+        }
+
+        .char-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .marker-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .char-name {
@@ -376,12 +395,12 @@
             animation: marker-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        .marker-avatar.dagobert {
+        .marker-avatar.michiel {
             background: linear-gradient(135deg, #1a237e, #283593);
             border: 3px solid var(--disney-gold);
             box-shadow: 0 0 20px rgba(244, 197, 66, 0.5), 0 4px 15px rgba(0,0,0,0.4);
         }
-        .marker-avatar.girlfriend {
+        .marker-avatar.claire {
             background: linear-gradient(135deg, #c62828, #e53935);
             border: 3px solid var(--disney-pink);
             box-shadow: 0 0 20px rgba(255, 107, 157, 0.5), 0 4px 15px rgba(0,0,0,0.4);
@@ -406,8 +425,8 @@
             z-index: 1;
             border-radius: 0 0 3px 0;
         }
-        .marker-pointer.dagobert { background: var(--disney-gold); }
-        .marker-pointer.girlfriend { background: var(--disney-pink); }
+        .marker-pointer.michiel { background: var(--disney-gold); }
+        .marker-pointer.claire { background: var(--disney-pink); }
         .marker-pointer.jort { background: var(--disney-blue); }
         .marker-pointer.olaf { background: var(--disney-teal); }
 
@@ -758,89 +777,7 @@
 
     <p class="splash-prompt">Who are you?</p>
 
-    <div class="character-select">
-        <button class="char-btn" onclick="selectCharacter('dagobert')">
-            <div class="char-avatar dagobert">
-                <svg viewBox="0 0 40 40" width="40" height="40">
-                    <circle cx="20" cy="16" r="10" fill="#fdd835"/>
-                    <rect x="10" y="10" width="20" height="6" rx="3" fill="#1a237e"/>
-                    <circle cx="15" cy="14" r="2" fill="#fff"/>
-                    <circle cx="25" cy="14" r="2" fill="#fff"/>
-                    <circle cx="15" cy="14" r="1" fill="#333"/>
-                    <circle cx="25" cy="14" r="1" fill="#333"/>
-                    <ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/>
-                    <rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/>
-                    <circle cx="20" cy="4" r="4" fill="#f44336"/>
-                    <circle cx="14" cy="18" r="2.5" fill="#fff" opacity="0.3"/>
-                    <circle cx="20" cy="32" rx="4" fill="#1a237e"/>
-                    <rect x="8" y="26" width="24" height="12" rx="3" fill="#1a237e"/>
-                    <rect x="16" y="28" width="8" height="4" rx="1" fill="#f4c542"/>
-                </svg>
-            </div>
-            <span class="char-name">Dagobert</span>
-        </button>
-        <button class="char-btn" onclick="selectCharacter('girlfriend')">
-            <div class="char-avatar girlfriend">
-                <svg viewBox="0 0 40 40" width="40" height="40">
-                    <circle cx="20" cy="18" r="10" fill="#333"/>
-                    <circle cx="13" cy="10" r="7" fill="#333"/>
-                    <circle cx="27" cy="10" r="7" fill="#333"/>
-                    <circle cx="20" cy="18" r="8" fill="#ffe0b2"/>
-                    <circle cx="16" cy="16" r="1.5" fill="#333"/>
-                    <circle cx="24" cy="16" r="1.5" fill="#333"/>
-                    <ellipse cx="20" cy="20" rx="2" ry="1" fill="#e91e63"/>
-                    <circle cx="13" cy="10" r="4" fill="#333"/>
-                    <circle cx="27" cy="10" r="4" fill="#333"/>
-                    <circle cx="13" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
-                    <circle cx="27" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
-                    <ellipse cx="20" cy="6" rx="12" ry="3" fill="none" stroke="#e91e63" stroke-width="2"/>
-                    <rect x="8" y="28" width="24" height="10" rx="3" fill="#e91e63"/>
-                    <circle cx="20" cy="29" r="2" fill="#fff" opacity="0.3"/>
-                </svg>
-            </div>
-            <span class="char-name">Vriendin</span>
-        </button>
-        <button class="char-btn" onclick="selectCharacter('jort')">
-            <div class="char-avatar jort">
-                <svg viewBox="0 0 40 40" width="40" height="40">
-                    <circle cx="20" cy="20" r="12" fill="#4fc3f7"/>
-                    <ellipse cx="12" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/>
-                    <ellipse cx="28" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(20, 28, 8)"/>
-                    <circle cx="14" cy="18" r="4" fill="#1a237e"/>
-                    <circle cx="26" cy="18" r="4" fill="#1a237e"/>
-                    <circle cx="15" cy="17" r="2" fill="#fff"/>
-                    <circle cx="27" cy="17" r="2" fill="#fff"/>
-                    <ellipse cx="20" cy="26" rx="5" ry="3" fill="#1a237e"/>
-                    <ellipse cx="20" cy="25" rx="3" ry="1.5" fill="#e91e63"/>
-                    <circle cx="20" cy="22" r="3" fill="#29b6f6"/>
-                    <line x1="12" y1="10" x2="8" y2="3" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="28" y1="10" x2="32" y2="3" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round"/>
-                    <rect x="10" y="32" width="20" height="6" rx="3" fill="#e91e63"/>
-                </svg>
-            </div>
-            <span class="char-name">Jort</span>
-        </button>
-        <button class="char-btn" onclick="selectCharacter('olaf')">
-            <div class="char-avatar olaf">
-                <svg viewBox="0 0 40 40" width="40" height="40">
-                    <circle cx="20" cy="16" r="10" fill="#8d6e63"/>
-                    <rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/>
-                    <polygon points="20,0 14,6 26,6" fill="#fff"/>
-                    <rect x="12" y="8" width="16" height="6" fill="#f4c542"/>
-                    <circle cx="20" cy="10" r="2" fill="#e91e63"/>
-                    <circle cx="16" cy="16" r="2" fill="#fff"/>
-                    <circle cx="24" cy="16" r="2" fill="#fff"/>
-                    <circle cx="16" cy="16" r="1" fill="#333"/>
-                    <circle cx="24" cy="16" r="1" fill="#333"/>
-                    <path d="M17 21 Q20 24 23 21" stroke="#333" fill="none" stroke-width="1.5" stroke-linecap="round"/>
-                    <rect x="8" y="26" width="24" height="12" rx="3" fill="#fff"/>
-                    <rect x="14" y="26" width="12" height="12" rx="2" fill="#26c6da"/>
-                    <rect x="16" y="30" width="8" height="4" rx="1" fill="#f4c542"/>
-                </svg>
-            </div>
-            <span class="char-name">Olaf</span>
-        </button>
-    </div>
+    <div class="character-select" id="charSelect"></div>
 </div>
 
 <!-- ===== FIREBASE SETUP SCREEN ===== -->
@@ -924,29 +861,33 @@
 <script>
 // ===== FAMILY CONFIG =====
 const FAMILY = {
-    dagobert: {
-        name: 'Dagobert',
+    michiel: {
+        name: 'Michiel',
         character: 'Scrooge McDuck',
         color: '#f4c542',
         colorAlt: '#1a237e',
+        img: 'https://static.wikia.nocookie.net/disney/images/7/78/180px-A4cf53e959.png/revision/latest?cb=20140828162139&path-prefix=de',
     },
-    girlfriend: {
-        name: 'Vriendin',
+    claire: {
+        name: 'Claire',
         character: 'Minnie Mouse',
         color: '#ff6b9d',
         colorAlt: '#c62828',
+        img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAs0ioF4miQKidHwFGGJtVXAwtKcw-JWPlIl0hqnRQTpTJRnJatX7KcsjXWPj6hFKwdn1LA1e4o5W0EvWFn5PS9tnGYKgj6YnCJwPcG20&s=10',
     },
     jort: {
         name: 'Jort',
         character: 'Stitch',
         color: '#4fc3f7',
         colorAlt: '#4a148c',
+        img: 'https://i.pinimg.com/736x/fa/ff/4f/faff4f6d9c02d7f07b448dbc32823797.jpg',
     },
     olaf: {
         name: 'Olaf',
         character: 'Prins Ali',
         color: '#26c6da',
         colorAlt: '#00695c',
+        img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQB6h-7Gj_gUUHvvWZ2dd_Q3R488XpkXk9NDQ&s',
     }
 };
 
@@ -1072,6 +1013,26 @@ function createStars() {
 }
 createStars();
 
+// ===== BUILD CHARACTER SELECT BUTTONS =====
+function buildCharSelect() {
+    const container = document.getElementById('charSelect');
+    if (!container) return;
+    Object.keys(FAMILY).forEach(id => {
+        const member = FAMILY[id];
+        const btn = document.createElement('button');
+        btn.className = 'char-btn';
+        btn.onclick = function() { selectCharacter(id); };
+        btn.innerHTML = `
+            <div class="char-avatar ${id}">
+                <img src="${member.img}" alt="${member.name}" />
+            </div>
+            <span class="char-name">${member.name}</span>
+        `;
+        container.appendChild(btn);
+    });
+}
+buildCharSelect();
+
 // ===== STARTUP LOGIC =====
 (function startup() {
     // Auto-connect to Firebase
@@ -1150,55 +1111,9 @@ function initMap() {
 // ===== MARKERS =====
 function createMarkerHTML(id) {
     const member = FAMILY[id];
-    const svgMap = {
-        dagobert: `<svg viewBox="0 0 40 40" width="32" height="32">
-            <circle cx="20" cy="16" r="10" fill="#fdd835"/>
-            <rect x="10" y="10" width="20" height="6" rx="3" fill="#1a237e"/>
-            <circle cx="15" cy="14" r="2" fill="#fff"/><circle cx="25" cy="14" r="2" fill="#fff"/>
-            <circle cx="15" cy="14" r="1" fill="#333"/><circle cx="25" cy="14" r="1" fill="#333"/>
-            <ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/>
-            <rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/>
-            <circle cx="20" cy="4" r="4" fill="#f44336"/>
-            <rect x="8" y="26" width="24" height="12" rx="3" fill="#1a237e"/>
-            <rect x="16" y="28" width="8" height="4" rx="1" fill="#f4c542"/>
-        </svg>`,
-        girlfriend: `<svg viewBox="0 0 40 40" width="32" height="32">
-            <circle cx="20" cy="18" r="10" fill="#333"/>
-            <circle cx="13" cy="10" r="7" fill="#333"/><circle cx="27" cy="10" r="7" fill="#333"/>
-            <circle cx="20" cy="18" r="8" fill="#ffe0b2"/>
-            <circle cx="16" cy="16" r="1.5" fill="#333"/><circle cx="24" cy="16" r="1.5" fill="#333"/>
-            <ellipse cx="20" cy="20" rx="2" ry="1" fill="#e91e63"/>
-            <circle cx="13" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
-            <circle cx="27" cy="10" r="2.5" fill="#e91e63" opacity="0.8"/>
-            <rect x="8" y="28" width="24" height="10" rx="3" fill="#e91e63"/>
-        </svg>`,
-        jort: `<svg viewBox="0 0 40 40" width="32" height="32">
-            <circle cx="20" cy="20" r="12" fill="#4fc3f7"/>
-            <ellipse cx="12" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/>
-            <ellipse cx="28" cy="8" rx="5" ry="8" fill="#4fc3f7" transform="rotate(20, 28, 8)"/>
-            <circle cx="14" cy="18" r="4" fill="#1a237e"/><circle cx="26" cy="18" r="4" fill="#1a237e"/>
-            <circle cx="15" cy="17" r="2" fill="#fff"/><circle cx="27" cy="17" r="2" fill="#fff"/>
-            <ellipse cx="20" cy="26" rx="5" ry="3" fill="#1a237e"/>
-            <circle cx="20" cy="22" r="3" fill="#29b6f6"/>
-            <rect x="10" y="32" width="20" height="6" rx="3" fill="#e91e63"/>
-        </svg>`,
-        olaf: `<svg viewBox="0 0 40 40" width="32" height="32">
-            <circle cx="20" cy="16" r="10" fill="#8d6e63"/>
-            <rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/>
-            <rect x="12" y="8" width="16" height="6" fill="#f4c542"/>
-            <circle cx="20" cy="10" r="2" fill="#e91e63"/>
-            <circle cx="16" cy="16" r="2" fill="#fff"/><circle cx="24" cy="16" r="2" fill="#fff"/>
-            <circle cx="16" cy="16" r="1" fill="#333"/><circle cx="24" cy="16" r="1" fill="#333"/>
-            <path d="M17 21 Q20 24 23 21" stroke="#333" fill="none" stroke-width="1.5"/>
-            <rect x="8" y="26" width="24" height="12" rx="3" fill="#fff"/>
-            <rect x="14" y="26" width="12" height="12" rx="2" fill="#26c6da"/>
-            <rect x="16" y="30" width="8" height="4" rx="1" fill="#f4c542"/>
-        </svg>`
-    };
-
     return `
         <div class="disney-marker">
-            <div class="marker-avatar ${id}">${svgMap[id]}</div>
+            <div class="marker-avatar ${id}"><img src="${member.img}" alt="${member.name}" /></div>
             <div class="marker-pointer ${id}"></div>
             <div class="marker-label" style="color: ${member.colorAlt}">${member.name}</div>
         </div>
@@ -1312,16 +1227,9 @@ function buildFamilyCards() {
         card.className = `family-card${isActive ? ' active' : ''}`;
         card.style.setProperty('--card-color', member.color);
 
-        const svgAvatars = {
-            dagobert: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="16" r="10" fill="#fdd835"/><rect x="12" y="4" width="16" height="8" rx="4" fill="#1a237e"/><circle cx="20" cy="4" r="4" fill="#f44336"/><circle cx="15" cy="14" r="1" fill="#333"/><circle cx="25" cy="14" r="1" fill="#333"/><ellipse cx="20" cy="22" rx="6" ry="4" fill="#ff9800"/></svg>`,
-            girlfriend: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="18" r="8" fill="#ffe0b2"/><circle cx="13" cy="10" r="5" fill="#333"/><circle cx="27" cy="10" r="5" fill="#333"/><circle cx="13" cy="10" r="2" fill="#e91e63" opacity="0.8"/><circle cx="27" cy="10" r="2" fill="#e91e63" opacity="0.8"/><circle cx="16" cy="16" r="1.5" fill="#333"/><circle cx="24" cy="16" r="1.5" fill="#333"/></svg>`,
-            jort: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="20" r="12" fill="#4fc3f7"/><ellipse cx="12" cy="8" rx="4" ry="6" fill="#4fc3f7" transform="rotate(-20, 12, 8)"/><ellipse cx="28" cy="8" rx="4" ry="6" fill="#4fc3f7" transform="rotate(20, 28, 8)"/><circle cx="14" cy="18" r="3" fill="#1a237e"/><circle cx="26" cy="18" r="3" fill="#1a237e"/><circle cx="15" cy="17" r="1.5" fill="#fff"/><circle cx="27" cy="17" r="1.5" fill="#fff"/></svg>`,
-            olaf: `<svg viewBox="0 0 40 40" width="28" height="28"><circle cx="20" cy="16" r="10" fill="#8d6e63"/><rect x="10" y="2" width="20" height="14" rx="3" fill="#fff"/><rect x="12" y="8" width="16" height="6" fill="#f4c542"/><circle cx="20" cy="10" r="2" fill="#e91e63"/><circle cx="16" cy="16" r="1" fill="#333"/><circle cx="24" cy="16" r="1" fill="#333"/></svg>`
-        };
-
         card.innerHTML = `
-            <div class="card-avatar" style="background: linear-gradient(135deg, ${member.colorAlt}, ${member.color}22); border: 2px solid ${member.color}; border-radius: 50%;">
-                ${svgAvatars[id]}
+            <div class="card-avatar" style="background: linear-gradient(135deg, ${member.colorAlt}, ${member.color}22); border: 2px solid ${member.color}; border-radius: 50%; overflow: hidden;">
+                <img src="${member.img}" alt="${member.name}" />
             </div>
             <div class="card-name" style="color: ${member.color}">${member.name}</div>
             <div class="card-status ${loc ? 'online' : ''}">${loc ? formatTime(loc.time) : 'No location'}</div>
