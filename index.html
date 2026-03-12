@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>THE NIEUWSTRAAT</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a0f2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nieuwstraat">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -687,6 +697,9 @@
         }
 
         /* ===== LEAFLET OVERRIDES ===== */
+        .leaflet-top.leaflet-left {
+            top: 70px !important;
+        }
         .leaflet-control-zoom {
             border: 2px solid rgba(42, 27, 61, 0.5) !important;
             border-radius: 10px !important;
@@ -1292,6 +1305,15 @@ function showToast(message) {
     toast.textContent = message;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ===== SERVICE WORKER REGISTRATION =====
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('Service Worker registered:', reg.scope);
+    }).catch(err => {
+        console.log('Service Worker registration failed:', err);
+    });
 }
 </script>
 </body>
