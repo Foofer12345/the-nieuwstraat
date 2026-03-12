@@ -958,13 +958,16 @@ let locations = {};
 let firebaseReady = false;
 let db = null;
 
-// ===== FIREBASE =====
-function getFirebaseConfig() {
-    try {
-        const stored = localStorage.getItem('nieuwstraat_firebase_config');
-        return stored ? JSON.parse(stored) : null;
-    } catch (e) { return null; }
-}
+// ===== FIREBASE CONFIG (hardcoded) =====
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyD4y0NO7AnJDYOLkSzCOD55Typ5PovADPg",
+    authDomain: "the-nieuwstraat.firebaseapp.com",
+    databaseURL: "https://the-nieuwstraat-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "the-nieuwstraat",
+    storageBucket: "the-nieuwstraat.firebasestorage.app",
+    messagingSenderId: "56746226004",
+    appId: "1:56746226004:web:04b10b27a4d03e2ca5d8c1"
+};
 
 function initFirebase(config) {
     try {
@@ -1071,19 +1074,12 @@ createStars();
 
 // ===== STARTUP LOGIC =====
 (function startup() {
-    const config = getFirebaseConfig();
-    if (config) {
-        // Config exists — try to connect silently
-        if (initFirebase(config)) {
-            firebaseListenLocations();
-        }
-        // Show splash either way
-        document.getElementById('splash').style.display = '';
-    } else {
-        // No config — show setup screen first
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('firebase-setup').classList.add('active');
+    // Auto-connect to Firebase
+    if (initFirebase(FIREBASE_CONFIG)) {
+        firebaseListenLocations();
     }
+    // Show splash (character select)
+    document.getElementById('splash').style.display = '';
 })();
 
 // ===== CHARACTER SELECT =====
